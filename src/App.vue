@@ -5,19 +5,14 @@
   <div class="app-wrapper">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <img src="/logo.svg" alt="Notebook" class="logo" />
+        <router-link to="/list" class="logo-link" title="All Notes">
+          <img src="/logo.svg" alt="Notebook" class="logo" />
+        </router-link>
       </div>
+
+      <div class="sidebar-divider"></div>
       
       <div class="sidebar-nav">
-        <router-link to="/list" class="nav-link" title="All Notes">
-          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-          </svg>
-        </router-link>
-
         <router-link to="/new" class="nav-link primary-action" title="New Note">
           <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -64,11 +59,19 @@
 }
 
 .sidebar-header {
-  padding: 24px 0;
+  padding: 24px 0 16px 0; /* Reduced bottom padding slightly to accommodate divider */
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
+}
+
+.sidebar-divider {
+  width: 32px;
+  height: 1px;
+  background-color: #a0b0c7ff;
+  margin: 0 auto 8px auto;
+  border-radius: 1px;
 }
 
 .logo {
@@ -78,8 +81,20 @@
   object-fit: contain;
 }
 
+.logo-link {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  transition: opacity 0.2s ease;
+}
+
+.logo-link:hover {
+  opacity: 0.8;
+}
+
 .sidebar-nav {
-  padding: 16px 0;
+  padding-top: 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;

@@ -1,14 +1,19 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import { getNote, saveNote, deleteNote } from '../utils/storage.js'
 
 const route = useRoute()
-const router = useRouter()
 
 const noteId = ref('')
 const noteTitle = ref('')
 const noteContent = ref('')
+const textareaRef = ref(null)
+
+const isNewNote = ref(false)
+const titlePlaceholder = ref('Untitled')
+// 用于标记是否由其他标签页同步过来，防止循环保存
+const isSyncingFromOtherTab = ref(false)
 
 const formatCurrentTime = () => {
   const d = new Date()
@@ -16,7 +21,7 @@ const formatCurrentTime = () => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
-onMounted(() => {
+onMounted(async () => {
   noteId.value = route.params.id
   const existingNote = getNote(noteId.value)
 
@@ -24,11 +29,86 @@ onMounted(() => {
     noteTitle.value = existingNote.title
     noteContent.value = existingNote.content
   } else {
-    noteTitle.value = formatCurrentTime()
+    isNewNote.value = true
+    titlePlaceholder.value = formatCurrentTime()
+  }
+  
+  // 监听其他标签页引起的 localStorage 变化
+  window.addEventListener('storage', handleStorageChange)
+  
+  await nextTick()
+
+  const el = textareaRef.value
+  if (el) {
+    el.focus()
+    
+    const pageHeight = el.clientHeight
+    
+    // Temporarily shrink to measure actual text height
+    const prevFlex = el.style.flex
+    const prevHeight = el.style.height
+    el.style.flex = 'none'
+    el.style.height = '1px'
+    const actualTextHeight = el.scrollHeight
+    el.style.flex = prevFlex
+    el.style.height = prevHeight
+
+    const length = noteContent.value ? noteContent.value.length : 0
+    if (actualTextHeight <= pageHeight * 0.8) {
+      el.setSelectionRange(length, length)
+      el.scrollTop = el.scrollHeight
+    } else {
+      el.setSelectionRange(0, 0)
+      el.scrollTop = 0
+    }
   }
 })
 
+onUnmounted(() => {
+  window.removeEventListener('storage', handleStorageChange)
+})
+
+const handleStorageChange = (e) => {
+  // `storage` 事件只会在其他标签页修改 localStorage 时触发
+  if (e.key === 'notes' && e.newValue) {
+    try {
+      const newNotes = JSON.parse(e.newValue)
+      const updatedNote = newNotes[noteId.value]
+      
+      if (updatedNote) {
+        // 如果内容确实不一样，则更新本地状态
+        if (noteTitle.value !== updatedNote.title || noteContent.value !== updatedNote.content) {
+          isSyncingFromOtherTab.value = true
+          noteTitle.value = updatedNote.title
+          noteContent.value = updatedNote.content
+        }
+      } else if (!isNewNote.value) {
+        // 笔记在其他标签页被删除了，我们可以清空内容
+        isSyncingFromOtherTab.value = true
+        noteContent.value = ''
+        noteTitle.value = ''
+      }
+    } catch (err) {
+      console.error('解析存储数据失败:', err)
+    }
+  }
+}
+
 watch([noteTitle, noteContent], ([newTitle, newContent]) => {
+  // 如果是因为其他标签页的同步导致的更新，跳过此次保存
+  if (isSyncingFromOtherTab.value) {
+    isSyncingFromOtherTab.value = false
+    return
+  }
+
+  if (isNewNote.value && newContent !== '') {
+    if (!newTitle) {
+      noteTitle.value = titlePlaceholder.value
+      newTitle = titlePlaceholder.value
+    }
+    isNewNote.value = false
+  }
+
   if (newContent.trim() !== '') {
     saveNote(noteId.value, newContent, newTitle)
   } else {
@@ -36,42 +116,22 @@ watch([noteTitle, noteContent], ([newTitle, newContent]) => {
   }
 })
 
-const goBack = () => {
-  router.push('/list')
-}
-
-// Auto-resize textarea to fit content and hide native scrollbars
-const resizeTextarea = (e) => {
-  const el = e.target
-  el.style.height = 'auto'
-  el.style.height = el.scrollHeight + 'px'
-}
 </script>
 
 <template>
   <div class="note-page">
-    <div class="top-nav">
-      <button class="nav-btn" @click="goBack" title="Back to Notes">
-        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="19" y1="12" x2="5" y2="12"></line>
-          <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
-        <span class="nav-label"></span>
-      </button>
-    </div>
-
     <div class="editor-container">
       <input 
         v-model="noteTitle" 
         class="title-input" 
-        placeholder="Untitled"
+        :placeholder="titlePlaceholder"
         autocomplete="off"
       />
       <textarea 
+        ref="textareaRef"
         v-model="noteContent" 
         class="content-editor" 
         placeholder="Start writing..."
-        @input="resizeTextarea"
       ></textarea>
     </div>
   </div>
@@ -81,44 +141,15 @@ const resizeTextarea = (e) => {
 .note-page {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100%;
   position: relative;
   background-color: #ffffff;
 }
 
-.top-nav {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 24px 40px;
-  z-index: 20;
-}
-
-.nav-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: none;
-  border: none;
-  font-size: 15px;
-  font-weight: 500;
-  color: #64748b;
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.nav-btn:hover {
-  background-color: #f1f5f9;
-  color: #0f172a;
-}
-
 .editor-container {
   width: 80%;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 20px 0 100px 0;
+  max-width: 1200px;
+  margin: 40px auto 20px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -151,10 +182,9 @@ const resizeTextarea = (e) => {
   color: #334155;
   background: transparent;
   outline: none;
-  padding: 0;
-  min-height: 50vh;
+  padding: 0 0 24px 0;
   font-family: 'Inter', -apple-system, sans-serif;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .content-editor::placeholder {
@@ -164,7 +194,7 @@ const resizeTextarea = (e) => {
 @media (max-width: 768px) {
   .editor-container {
     width: 90%;
-    padding: 20px 0 60px 0;
+    padding: 20px 0 0 0;
   }
   
   .title-input {

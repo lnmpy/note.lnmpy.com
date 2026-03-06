@@ -1,7 +1,12 @@
 <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- White halo effect for dark mode -->
-  <path d="M30 90 L30 30 L90 90 L90 30" stroke="#ffffff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
-  <!-- Main N -->
-  <path d="M30 90 L30 30 L90 90 L90 30" stroke="#0f172a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
-  <circle cx="30" cy="30" r="8" fill="#0ea5e9" />
+  <style>
+    .n-shape { stroke: #0f172a; }
+    .n-dot { fill: #0ea5e9; }
+    @media (prefers-color-scheme: dark) {
+      .n-shape { stroke: #f8fafc; }
+      .n-dot { fill: #38bdf8; }
+    }
+  </style>
+  <path class="n-shape" d="M30 90 L30 30 L90 90 L90 30" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+  <circle class="n-dot" cx="30" cy="30" r="9" />
 </svg>
