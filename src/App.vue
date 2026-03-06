@@ -6,7 +6,10 @@
     <aside class="sidebar">
       <div class="sidebar-header">
         <router-link to="/list" class="logo-link" title="All Notes">
-          <img src="/logo.svg" alt="Notebook" class="logo" />
+          <svg class="logo" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M30 90 L30 30 L90 90 L90 30" stroke="#0f172a" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="30" cy="30" r="9" fill="#0ea5e9" />
+          </svg>
         </router-link>
       </div>
 
