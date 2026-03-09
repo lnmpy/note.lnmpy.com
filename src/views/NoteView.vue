@@ -104,7 +104,7 @@ const handleScroll = (e) => {
     mirrorContainerRef.value.style.transform = `translateY(-${e.target.scrollTop}px)`
   }
 }
-// 用于标记是否由其他标签页同步过来，防止循环保存
+// Flag to indicate if syncing from another tab, to prevent circular saves
 const isSyncingFromOtherTab = ref(false)
 
 const formatCurrentTime = () => {
@@ -127,7 +127,7 @@ onMounted(async () => {
     titlePlaceholder.value = formatCurrentTime()
   }
   
-  // 监听其他标签页引起的 localStorage 变化
+  // Listen for localStorage changes from other tabs
   window.addEventListener('storage', handleStorageChange)
   document.addEventListener('click', handleOutsideClick)
   
@@ -169,14 +169,14 @@ onUnmounted(() => {
 })
 
 const handleStorageChange = (e) => {
-  // `storage` 事件只会在其他标签页修改 localStorage 时触发
+  // `storage` event only fires when localStorage is modified by other tabs
   if (e.key === 'notes' && e.newValue) {
     try {
       const newNotes = JSON.parse(e.newValue)
       const updatedNote = newNotes[noteId.value]
       
       if (updatedNote) {
-        // 如果内容确实不一样，则更新本地状态
+        // If content is actually different, update local state
         if (noteTitle.value !== updatedNote.title || noteContent.value !== updatedNote.content || isCalcEnabled.value !== !!updatedNote.isCalcEnabled || isHighlightEnabled.value !== !!updatedNote.isHighlightEnabled) {
           isSyncingFromOtherTab.value = true
           noteTitle.value = updatedNote.title
@@ -185,7 +185,7 @@ const handleStorageChange = (e) => {
           isHighlightEnabled.value = !!updatedNote.isHighlightEnabled
         }
       } else if (!isNewNote.value) {
-        // 笔记在其他标签页被删除了，我们可以清空内容
+        // Note was deleted in another tab, clear the content
         isSyncingFromOtherTab.value = true
         noteContent.value = ''
         noteTitle.value = ''
@@ -193,13 +193,13 @@ const handleStorageChange = (e) => {
         isHighlightEnabled.value = false
       }
     } catch (err) {
-      console.error('解析存储数据失败:', err)
+      console.error('Failed to parse storage data:', err)
     }
   }
 }
 
 watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, newContent, newIsCalcEnabled, newIsHighlightEnabled]) => {
-  // 如果是因为其他标签页的同步导致的更新，跳过此次保存
+  // If the update is from syncing with another tab, skip this save
   if (isSyncingFromOtherTab.value) {
     isSyncingFromOtherTab.value = false
     return

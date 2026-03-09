@@ -59,7 +59,7 @@ class Calculator {
 
             // Replace variables in exprPart, except numbers.
             // Match words including Chinese, letters, _, but not starting with numbers.
-            // E.g. 价格 -> var_0.
+            // E.g. price -> var_0.
             let translatedExpr = exprPart.replace(/[\p{L}_][\p{L}\p{N}_]*/gu, (match) => {
                 return this.getAlias(match);
             });
@@ -84,7 +84,7 @@ class Calculator {
                         this.scope[this.getAlias(assignTo)] = res;
                     }
 
-                    // If the expression was just a single number assignment (like 价格 = 10), 
+                    // If the expression was just a single number assignment (like price = 10), 
                     // maybe we don't need to show '10' on the right, or maybe we do.
                     // Usually it's nice to show it to confirm it parsed. Let's show it.
                     results.push(res);
