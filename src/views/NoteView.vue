@@ -479,12 +479,10 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
 
 :deep(.hl-op) {
   color: #0ea5e9; /* Light, elegant blue */
-  font-weight: 500;
 }
 
 :deep(.hl-var) {
   color: #8b5cf6; /* Soft violet */
-  font-weight: 500;
 }
 
 .mirror-line {
@@ -517,6 +515,13 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
 
 .content-editor.highlight-active::selection {
   background: rgba(59, 130, 246, 0.2); /* Make strictly background selection color */
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.content-editor.highlight-active::-moz-selection {
+  background: rgba(59, 130, 246, 0.2);
+  color: transparent;
   -webkit-text-fill-color: transparent;
 }
 
