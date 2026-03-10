@@ -106,6 +106,7 @@ const handleScroll = (e) => {
 }
 // Flag to indicate if syncing from another tab, to prevent circular saves
 const isSyncingFromOtherTab = ref(false)
+const isInitializing = ref(true)
 
 const formatCurrentTime = () => {
   const d = new Date()
@@ -160,6 +161,7 @@ onMounted(async () => {
   }
   
   window.addEventListener('resize', scheduleMeasurement)
+  isInitializing.value = false
 })
 
 onUnmounted(() => {
@@ -199,6 +201,8 @@ const handleStorageChange = (e) => {
 }
 
 watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, newContent, newIsCalcEnabled, newIsHighlightEnabled]) => {
+  if (isInitializing.value) return
+
   // If the update is from syncing with another tab, skip this save
   if (isSyncingFromOtherTab.value) {
     isSyncingFromOtherTab.value = false
