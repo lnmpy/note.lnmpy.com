@@ -61,7 +61,7 @@ const renderLine = (line, index) => {
     return escapeHtml(line)
   }
   
-  return line.replace(/(\d+(?:\.\d+)?)|([+\-*/=()%^＝]+)|([a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_\u4e00-\u9fa5]*)|([^a-zA-Z0-9_\u4e00-\u9fa5+\-*/=()%^＝]+)/g, (match, num, op, v, other) => {
+  return line.replace(/((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)|([+\-*/=()%^＝]+)|([a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_\u4e00-\u9fa5]*)|([^a-zA-Z0-9_\u4e00-\u9fa5+\-*/=()%^＝]+)/g, (match, num, op, v, other) => {
     if (num) return escapeHtml(num)
     if (op) return `<span class="hl-op">${escapeHtml(op)}</span>`
     if (v) return `<span class="hl-var">${escapeHtml(v)}</span>`

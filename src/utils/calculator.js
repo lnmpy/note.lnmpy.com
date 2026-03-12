@@ -25,7 +25,8 @@ class Calculator {
             .replace(/÷/g, '/')
             .replace(/％/g, '%')
             .replace(/（/g, '(')
-            .replace(/）/g, ')');
+            .replace(/）/g, ')')
+            .replace(/(?<!\d)(\d{1,3}(?:,\d{3})+)(?!\d)/g, match => match.replace(/,/g, ''));
 
         const lines = normalizedText.split('\n');
         const results = [];
