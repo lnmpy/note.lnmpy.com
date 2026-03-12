@@ -55,7 +55,7 @@ self.addEventListener('fetch', (event) => {
     }
 
     // Navigation requests & other same-origin resources – Stale-While-Revalidate
-    event.respondWith(staleWhileRevalidate(request))
+    event.respondWith(staleWhileRevalidate(event))
 })
 
 // ---- Strategy Implementations ----
@@ -72,7 +72,8 @@ async function cacheFirst(request) {
     return response
 }
 
-async function staleWhileRevalidate(request) {
+async function staleWhileRevalidate(event) {
+    const request = event.request
     const cache = await caches.open(CACHE_NAME)
     const cached = await cache.match(request)
 
@@ -84,7 +85,15 @@ async function staleWhileRevalidate(request) {
             }
             return response
         })
-        .catch(() => cached) // If network fails, fall back to cached (offline support)
+        .catch((err) => {
+            // If network fails, return cached fallback if available
+            if (cached) return cached
+            // Otherwise throw to let browser handle the network error naturally
+            throw err
+        })
+
+    // Keep service worker alive until network request completes and cache is updated
+    event.waitUntil(networkPromise.catch(() => {}))
 
     // Return cached version immediately if available, otherwise wait for network
     return cached || networkPromise
