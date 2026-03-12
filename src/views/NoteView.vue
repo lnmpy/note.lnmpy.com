@@ -18,6 +18,7 @@ const titlePlaceholder = ref('Untitled')
 const calcResultsRef = ref(null)
 const isCalcEnabled = ref(true)
 const isHighlightEnabled = ref(true)
+const displayContent = ref('')
 
 const isMenuOpen = ref(false)
 const menuRef = ref(null)
@@ -33,7 +34,17 @@ const handleOutsideClick = (e) => {
 }
 
 const noteLines = computed(() => {
-  return noteContent.value.split('\n')
+  return displayContent.value.split('\n')
+})
+
+const handleInput = (e) => {
+  displayContent.value = e.target.value
+}
+
+watch(noteContent, (newVal) => {
+  if (displayContent.value !== newVal) {
+    displayContent.value = newVal
+  }
 })
 
 const calculationResults = computed(() => {
@@ -92,7 +103,7 @@ const scheduleMeasurement = async () => {
   }
 }
 
-watch([noteContent, isCalcEnabled, isHighlightEnabled], () => {
+watch([displayContent, isCalcEnabled, isHighlightEnabled], () => {
   scheduleMeasurement()
 }, { immediate: true })
 
@@ -121,6 +132,7 @@ onMounted(async () => {
   if (existingNote) {
     noteTitle.value = existingNote.title
     noteContent.value = existingNote.content
+    displayContent.value = existingNote.content
     isCalcEnabled.value = !!existingNote.isCalcEnabled
     isHighlightEnabled.value = !!existingNote.isHighlightEnabled
   } else {
@@ -183,6 +195,7 @@ const handleStorageChange = (e) => {
           isSyncingFromOtherTab.value = true
           noteTitle.value = updatedNote.title
           noteContent.value = updatedNote.content
+          displayContent.value = updatedNote.content
           isCalcEnabled.value = !!updatedNote.isCalcEnabled
           isHighlightEnabled.value = !!updatedNote.isHighlightEnabled
         }
@@ -190,6 +203,7 @@ const handleStorageChange = (e) => {
         // Note was deleted in another tab, clear the content
         isSyncingFromOtherTab.value = true
         noteContent.value = ''
+        displayContent.value = ''
         noteTitle.value = ''
         isCalcEnabled.value = false
         isHighlightEnabled.value = false
@@ -273,6 +287,7 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
         <textarea 
           ref="textareaRef"
           v-model="noteContent" 
+          @input="handleInput"
           class="content-editor" 
           :class="{ 'calc-enabled': isCalcEnabled, 'highlight-active': isHighlightEnabled && isCalcEnabled }"
           placeholder="Start writing..."
