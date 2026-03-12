@@ -278,21 +278,23 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
       </div>
       
       <div class="content-wrapper">
-        <div class="mirror-mask" v-show="isCalcEnabled && isHighlightEnabled || true /* Always need mirror container for heights, mask shouldn't hide it completely unless we don't need heights. Wait, mask is part of the feature */" :style="{ zIndex: 0 }">
-          <div class="mirror-container" ref="mirrorContainerRef" aria-hidden="true" :class="{ 'highlight-active': isHighlightEnabled && isCalcEnabled }">
-            <div v-for="(line, index) in noteLines" :key="index" class="mirror-line" v-html="renderLine(line, index)"></div>
+        <div class="main-editor-area">
+          <div class="mirror-mask" v-show="isCalcEnabled && isHighlightEnabled || true /* Always need mirror container for heights, mask shouldn't hide it completely unless we don't need heights. Wait, mask is part of the feature */" :style="{ zIndex: 0 }">
+            <div class="mirror-container" ref="mirrorContainerRef" aria-hidden="true" :class="{ 'highlight-active': isHighlightEnabled && isCalcEnabled }">
+              <div v-for="(line, index) in noteLines" :key="index" class="mirror-line" v-html="renderLine(line, index)"></div>
+            </div>
           </div>
-        </div>
 
-        <textarea 
-          ref="textareaRef"
-          v-model="noteContent" 
-          @input="handleInput"
-          class="content-editor" 
-          :class="{ 'calc-enabled': isCalcEnabled, 'highlight-active': isHighlightEnabled && isCalcEnabled }"
-          placeholder="Start writing..."
-          @scroll="handleScroll"
-        ></textarea>
+          <textarea 
+            ref="textareaRef"
+            v-model="noteContent" 
+            @input="handleInput"
+            class="content-editor" 
+            :class="{ 'calc-enabled': isCalcEnabled, 'highlight-active': isHighlightEnabled && isCalcEnabled }"
+            placeholder="Start writing..."
+            @scroll="handleScroll"
+          ></textarea>
+        </div>
         <div class="calculation-results" ref="calcResultsRef" v-show="isCalcEnabled">
           <div v-for="(res, index) in calculationResults" :key="index" class="calc-line" :style="{ height: (lineHeights[index] || 30.6) + 'px' }">
             <template v-if="res.intPart !== undefined">
@@ -318,19 +320,16 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
 }
 
 .editor-container {
-  width: 80%;
-  max-width: 1200px;
+  width: 80%; /* Match media query for >1440px */
   margin: 40px auto 20px auto;
   display: flex;
   flex-direction: column;
   flex: 1;
-  transition: margin-right 0.3s ease, margin-left 0.3s ease, max-width 0.3s ease;
 }
 
 .editor-container.has-calc {
-  margin-right: max(10vw, 40ch);
-  margin-left: auto;
-  max-width: min(1200px, calc(100% - max(10vw, 40ch) - 20px));
+  /* Calculation results occupy 20ch on the right */
+  /* This container width will still be defined by media queries */
 }
 
 .title-input {
@@ -464,6 +463,18 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
   overflow: visible;
 }
 
+.editor-container.has-calc .content-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 20ch;
+  gap: 20px;
+}
+
+.main-editor-area {
+  position: relative;
+  min-width: 0; /* Prevents flex/grid overflowing */
+}
+
+/* Rest of mirror classes... */
 .mirror-mask {
   position: absolute;
   top: 0;
@@ -545,16 +556,12 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
 }
 
 .calculation-results {
-  position: absolute;
-  left: 100%;
-  top: 0;
-  bottom: 0;
-  width: max(10vw, 25ch); /* Sync strictly with editor's margin-right */
-  min-width: 25ch;
+  /* no position absolute now */
+  width: 20ch; 
   height: 100%;
   overflow-y: hidden;
   overflow-x: visible;
-  padding: 0 20px 24px 20px;
+  padding: 0 0 24px 20px;
   box-sizing: border-box;
   font-size: 18px;
   line-height: 1.7;
@@ -598,12 +605,10 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
     margin: 20px auto;
   }
   
-  .editor-container.has-calc {
-    margin-right: 25ch;
-    margin-left: 10px;
-    max-width: calc(100% - 25ch - 10px);
+  .editor-container.has-calc .content-wrapper {
+    display: flex; /* Revert grid */
   }
-  
+
   .title-input {
     font-size: 32px;
   }
@@ -611,11 +616,29 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
   .content-editor {
     font-size: 16px;
   }
-  
+
   .calculation-results {
-    width: 40ch;
-    padding: 0 10px 24px 10px;
-    font-size: 16px;
+    display: none;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1280px) {
+  .editor-container {
+    width: 100%;
+    padding: 0 40px; /* Some padding so it doesn't touch the edges */
+    box-sizing: border-box;
+  }
+}
+
+@media (min-width: 1281px) and (max-width: 1440px) {
+  .editor-container {
+    width: 90%;
+  }
+}
+
+@media (min-width: 1441px) {
+  .editor-container {
+    width: 80%;
   }
 }
 </style>
