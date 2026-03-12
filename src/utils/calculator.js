@@ -45,6 +45,21 @@ class Calculator {
             let assignTo = null;
             let exprPart = line.trim();
 
+            // Ignore comments starting with '#' or '//'
+            const commentIndex = Math.min(
+                exprPart.indexOf('#') === -1 ? Infinity : exprPart.indexOf('#'),
+                exprPart.indexOf('//') === -1 ? Infinity : exprPart.indexOf('//')
+            );
+            if (commentIndex !== Infinity) {
+                exprPart = exprPart.substring(0, commentIndex).trim();
+            }
+
+            // If exprPart is empty after removing comments, skip
+            if (!exprPart) {
+                results.push('');
+                continue;
+            }
+
             // Check for assignment: any non empty string before =
             const assignMatch = exprPart.match(/^([^=＝]+)[=＝](.*)$/);
             if (assignMatch && !exprPart.includes('==') && !exprPart.includes('!=')) {
@@ -52,7 +67,7 @@ class Calculator {
                 exprPart = assignMatch[2].trim();
             }
 
-            // If exprPart is empty, skip
+            // If exprPart is empty (e.g., 'price = ' without a value), skip
             if (!exprPart) {
                 results.push('');
                 continue;

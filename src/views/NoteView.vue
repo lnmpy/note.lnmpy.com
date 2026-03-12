@@ -72,13 +72,55 @@ const renderLine = (line, index) => {
     return escapeHtml(line)
   }
   
-  return line.replace(/((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)|([+\-*/=()%^＝]+)|([a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_\u4e00-\u9fa5]*)|([^a-zA-Z0-9_\u4e00-\u9fa5+\-*/=()%^＝]+)/g, (match, num, op, v, other) => {
-    if (num) return escapeHtml(num)
-    if (op) return `<span class="hl-op">${escapeHtml(op)}</span>`
-    if (v) return `<span class="hl-var">${escapeHtml(v)}</span>`
-    if (other) return escapeHtml(other)
-    return ''
-  })
+  let seenEquals = false;
+  const hasEquals = line.includes('=') || line.includes('＝');
+  
+  // Find comments
+  let textPart = line;
+  let commentPart = '';
+  const hashIndex = line.indexOf('#');
+  const slashIndex = line.indexOf('//');
+  
+  let commentIndex = -1;
+  if (hashIndex !== -1 && slashIndex !== -1) {
+    commentIndex = Math.min(hashIndex, slashIndex);
+  } else if (hashIndex !== -1) {
+    commentIndex = hashIndex;
+  } else if (slashIndex !== -1) {
+    commentIndex = slashIndex;
+  }
+  
+  if (commentIndex !== -1) {
+    textPart = line.substring(0, commentIndex);
+    commentPart = line.substring(commentIndex);
+  }
+  
+  let highlightedText = '';
+  
+  if (textPart) {
+    highlightedText = textPart.replace(/((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)|([+\-*/=()%^＝]+)|([a-zA-Z_\u4e00-\u9fa5][a-zA-Z0-9_\u4e00-\u9fa5]*)|([^a-zA-Z0-9_\u4e00-\u9fa5+\-*/=()%^＝]+)/g, (match, num, op, v, other) => {
+      if (num) return `<span class="hl-num">${escapeHtml(num)}</span>`
+      if (op) {
+        if (op.includes('=') || op.includes('＝')) seenEquals = true;
+        return `<span class="hl-op">${escapeHtml(op)}</span>`
+      }
+      if (v) {
+        // Variables matching math-js compatible strings
+        if (hasEquals && !seenEquals) {
+          return `<span class="hl-var-lhs">${escapeHtml(v)}</span>`
+        }
+        return `<span class="hl-var">${escapeHtml(v)}</span>`
+      }
+      if (other) return `<span class="hl-text">${escapeHtml(other)}</span>`
+      return ''
+    });
+  }
+  
+  if (commentPart) {
+    highlightedText += `<span class="hl-comment">${escapeHtml(commentPart)}</span>`;
+  }
+  
+  return highlightedText;
 }
 
 const mirrorContainerRef = ref(null)
@@ -436,7 +478,7 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
 .menu-label {
   font-size: 14px;
   color: #475569;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: system-ui, sans-serif;
   transition: color 0.2s;
 }
 
@@ -471,6 +513,7 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
 
 .main-editor-area {
   position: relative;
+  flex: 1;
   min-width: 0; /* Prevents flex/grid overflowing */
 }
 
@@ -493,7 +536,7 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
   padding: 0 0 24px 0;
   font-size: 18px;
   line-height: 1.7;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: system-ui, sans-serif;
   white-space: pre-wrap;
   word-wrap: break-word;
   visibility: hidden;
@@ -507,12 +550,29 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
   color: #334155;
 }
 
+:deep(.hl-num) {
+  color: #3b82f6; /* Blue */
+}
+
 :deep(.hl-op) {
-  color: #0ea5e9; /* Light, elegant blue */
+  color: #c084fc; /* Light purple */
+}
+
+:deep(.hl-var-lhs) {
+  color: #ec4899; /* Deep pink */
 }
 
 :deep(.hl-var) {
   color: #8b5cf6; /* Soft violet */
+}
+
+:deep(.hl-comment) {
+  color: #94a3b8; /* Slate gray */
+  font-style: italic;
+}
+
+:deep(.hl-text) {
+  color: #000000; /* Default text color (Black) */
 }
 
 .mirror-line {
@@ -530,7 +590,7 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
   background: transparent;
   outline: none;
   padding: 0 0 24px 0;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: system-ui, sans-serif;
   overflow-y: auto;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -565,7 +625,7 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
   box-sizing: border-box;
   font-size: 18px;
   line-height: 1.7;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: system-ui, sans-serif;
   color: #64748b;
   border-left: 1px solid #f1f5f9;
 }
@@ -581,12 +641,14 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
 .int-part {
   text-align: right;
   white-space: pre;
+  flex-shrink: 0;
 }
 
 .dec-part {
   text-align: left;
   width: 5.5ch; /* allow 4 decimal places alignment */
   white-space: pre;
+  flex-shrink: 0;
 }
 
 .raw-res {
@@ -639,6 +701,10 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
 @media (min-width: 1441px) {
   .editor-container {
     width: 80%;
+  }
+  .calculation-results {
+    /* no position absolute now */
+    width: 30ch; 
   }
 }
 </style>
