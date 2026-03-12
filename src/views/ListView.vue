@@ -29,6 +29,21 @@ const removeNote = (id, event) => {
   }
 }
 
+const exportNotes = () => {
+  const notes = getNotes()
+  const data = JSON.stringify(notes, null, 2)
+  const blob = new Blob([data], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `notes-export-${new Date().toISOString().split('T')[0]}.json`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
 const formatDate = (timestamp) => {
   const date = new Date(timestamp)
   const now = new Date()
@@ -71,6 +86,9 @@ const formatDate = (timestamp) => {
           </div>
         </div>
       </div>
+    </div>
+    <div v-if="notesList.length > 0" class="list-footer">
+      <button class="export-btn" @click="exportNotes">Export all notes</button>
     </div>
   </div>
 </template>
@@ -253,5 +271,26 @@ const formatDate = (timestamp) => {
   font-size: 12px;
   font-weight: 500;
   color: #94a3b8;
+}
+
+.list-footer {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.export-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.export-btn:hover {
+  color: #64748b;
+  background: #f1f5f9;
 }
 </style>
