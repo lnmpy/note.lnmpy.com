@@ -6,6 +6,3 @@
 
 /index.html
   Cache-Control: public, max-age=86400
-
-/sw.js
-  Cache-Control: no-cache
