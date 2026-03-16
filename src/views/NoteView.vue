@@ -478,7 +478,7 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
 .menu-label {
   font-size: 14px;
   color: #475569;
-  font-family: system-ui, sans-serif;
+  font-family: inherit;
   transition: color 0.2s;
 }
 
@@ -536,7 +536,7 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
   padding: 0 0 24px 0;
   font-size: 18px;
   line-height: 1.7;
-  font-family: system-ui, sans-serif;
+  font-family: inherit;
   white-space: pre-wrap;
   word-wrap: break-word;
   visibility: hidden;
@@ -590,7 +590,7 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
   background: transparent;
   outline: none;
   padding: 0 0 24px 0;
-  font-family: system-ui, sans-serif;
+  font-family: inherit;
   overflow-y: auto;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -625,7 +625,7 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
   box-sizing: border-box;
   font-size: 18px;
   line-height: 1.7;
-  font-family: system-ui, sans-serif;
+  font-family: inherit;
   color: #64748b;
   border-left: 1px solid #f1f5f9;
 }
