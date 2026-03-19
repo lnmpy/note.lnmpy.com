@@ -1,9 +1,10 @@
 <script setup>
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { generateId, getNotes } from '../utils/storage.js'
 
 const router = useRouter()
+const route = useRoute()
 
 onMounted(() => {
   const notes = getNotes()
@@ -14,8 +15,13 @@ onMounted(() => {
     newId = generateId()
   }
 
-  // Redirect to newly generated note id
-  router.replace(`/id-${newId}`)
+  // Redirect to newly generated note id with mode if needed
+  const query = {}
+  if (route.path === '/new-cal') {
+    query.mode = 'cal'
+  }
+  
+  router.replace({ path: `/id-${newId}`, query })
 })
 </script>
 

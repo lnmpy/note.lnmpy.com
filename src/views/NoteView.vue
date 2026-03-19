@@ -16,7 +16,7 @@ const textareaRef = ref(null)
 const isNewNote = ref(false)
 const titlePlaceholder = ref('Untitled')
 const calcResultsRef = ref(null)
-const isCalcEnabled = ref(true)
+const isCalcEnabled = ref(false)
 const isHighlightEnabled = ref(true)
 const displayContent = ref('')
 
@@ -180,6 +180,9 @@ onMounted(async () => {
   } else {
     isNewNote.value = true
     titlePlaceholder.value = formatCurrentTime()
+    if (route.query.mode === 'cal') {
+      isCalcEnabled.value = true
+    }
   }
   
   // Listen for localStorage changes from other tabs
