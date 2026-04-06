@@ -259,6 +259,10 @@ const handleStorageChange = (e) => {
   }
 }
 
+watch([noteTitle, titlePlaceholder], ([newTitle, newPlaceholder]) => {
+  document.title = (newTitle || newPlaceholder || 'Untitled') + ' Notebook'
+}, { immediate: true })
+
 watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, newContent, newIsCalcEnabled, newIsHighlightEnabled]) => {
   if (isInitializing.value) return
 
