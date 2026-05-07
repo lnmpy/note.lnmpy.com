@@ -711,7 +711,7 @@ watch([noteTitle, noteContent, isCalcEnabled, isHighlightEnabled], ([newTitle, n
   }
   .calculation-results {
     /* no position absolute now */
-    width: 30ch; 
+    width: 24ch; 
   }
 }
 </style>
