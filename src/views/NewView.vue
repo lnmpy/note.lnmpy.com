@@ -15,13 +15,8 @@ onMounted(() => {
     newId = generateId()
   }
 
-  // Redirect to newly generated note id with mode if needed
-  const query = {}
-  if (route.path === '/new-cal') {
-    query.mode = 'cal'
-  }
-  
-  router.replace({ path: `/id-${newId}`, query })
+  // Redirect to newly generated note id
+  router.replace({ path: `/id-${newId}` })
 })
 </script>
 

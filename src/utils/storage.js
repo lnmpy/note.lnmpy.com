@@ -25,14 +25,12 @@ export const getNote = (id) => {
   return notes[id] || null
 }
 
-export const saveNote = (id, content, title, isCalcEnabled = false, isHighlightEnabled = false) => {
+export const saveNote = (id, content, title) => {
   const notes = getNotes()
   notes[id] = {
     id,
     content,
     title,
-    isCalcEnabled,
-    isHighlightEnabled,
     updatedAt: Date.now()
   }
   saveNotes(notes)

@@ -16,11 +16,6 @@ const routes = [
     component: () => import('../views/NewView.vue')
   },
   {
-    path: '/new-cal',
-    name: 'NewCal',
-    component: () => import('../views/NewView.vue')
-  },
-  {
     path: '/id-:id',
     name: 'Note',
     component: () => import('../views/NoteView.vue')
